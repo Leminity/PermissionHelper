@@ -34,7 +34,7 @@ public class PermissionHelper {
      * 3. 권한 허용/거부에 따른 로직 처리 및 캐시 해제
      *
      */
-    private static final JobManager mJobManager = new JobManager();
+    private static final JobManager JOBMANAGER = new JobManager();
 
     private Activity mAct;
     private String[] mPermissions;
@@ -113,7 +113,7 @@ public class PermissionHelper {
         }
 
         //권한 없으면.. 불행의 시작
-        mJobManager.addJob(act, requestCode, runWhenAllow, runWhenDenied);
+        JOBMANAGER.addJob(act, requestCode, runWhenAllow, runWhenDenied);
         requestPermission(act, requestCode, permissions, shouldRational);
     }
 
@@ -170,15 +170,15 @@ public class PermissionHelper {
         return false;
     }
 
-    public void callbackPermissionResult(Activity activity, int requestCode, int[] grantResult) {
+    public static void callbackPermissionResult(Activity activity, int requestCode, int[] grantResult) {
         boolean isAllowPermission = verifyPermissions(grantResult);
-        Runnable run = mJobManager.removeJob(activity, requestCode, isAllowPermission);
+        Runnable run = JOBMANAGER.removeJob(activity, requestCode, isAllowPermission);
 
         if(run != null)
             run.run();
     }
 
-    private boolean verifyPermissions(int[] grantResult) {
+    private static boolean verifyPermissions(int[] grantResult) {
         int resultCnt = grantResult.length;
 
         if(resultCnt <= 0)
@@ -192,8 +192,8 @@ public class PermissionHelper {
         return true;
     }
 
-    public void activityDestroyed(Activity activity) {
-        mJobManager.removeAllJob(activity);
+    public static void activityDestroyed(Activity activity) {
+        JOBMANAGER.removeAllJob(activity);
     }
 
     private void showShouldRationalSnackBar(final Activity act, String message, final int requestCode, final Runnable run) {
@@ -211,7 +211,7 @@ public class PermissionHelper {
                         super.onDismissed(snackbar, event);
 
                         if(event == Snackbar.Callback.DISMISS_EVENT_TIMEOUT)
-                            mJobManager.removeJob(act, requestCode, false);
+                            JOBMANAGER.removeJob(act, requestCode, false);
                     }
                 })
                 .show();
