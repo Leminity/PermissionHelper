@@ -46,7 +46,7 @@ protected void onDestroy() {
 ```
 
 2. API Documents
-1. Create instance in Activity or Fragment **(Required)**
+1. Create instance in Activity or Fragment <font color="red">(Required)</font>
  - requestPermission(android.app.Fragment fragment, String permission, int requestCode)
  - requestPermission(android.app.Fragment fragment, String[] permissions, int requestCode)
  - requestPermission(android.support.v4.app.Fragment fragment, String permission, int requestCode)
@@ -54,14 +54,14 @@ protected void onDestroy() {
  - requestPermission(Activity act, String permission, int requestCode)
  - requestPermission(Activity act, String[] permissions, int requestCode)
  
-2. Implements your Logic. **(optional)**
+2. Implements your Logic. <font color="blue">(optional)</font>
  - setActionGranted(Runnable run)
  - setActionDenied(Runnable run)
 
-3. Insert shouldrational message If you meed **(optional)**
+3. Set message When you need should rational. <font color="blue">(optional)</font>
  - setActionShouldRational(int stringResourceId)
  
-4. call permissionHelperInstance.callbackPermissionResult on Activity or Fragment's onRequestPermissionsResult method. **(Required)**
+4. call helperInstance.callbackPermissionResult on Activity or Fragment's onRequestPermissionsResult method. <font color="red">(Required)</font>
  - callbackPermissionResult(Activity activity, int requestCode, int[] grantResult)
  
 5. You must call PermissionHelper.activityDestroyed() when called Activity.onDestroy()
