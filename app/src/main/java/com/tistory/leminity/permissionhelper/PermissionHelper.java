@@ -154,6 +154,12 @@ public class PermissionHelper {
                         ActivityCompat.requestPermissions(act, permissions, requestCode);
                     }
                 });
+            } else {
+                int[] grantResults = new int[permissions.length];
+                for (int result : grantResults)
+                    result = PackageManager.PERMISSION_DENIED;
+                callbackPermissionResult(act, requestCode, grantResults);
+
             }
             return;
         }
@@ -197,7 +203,7 @@ public class PermissionHelper {
     }
 
     private void showShouldRationalSnackBar(final Activity act, String message, final int requestCode, final Runnable run) {
-        Snackbar.make(act.findViewById(android.R.id.content), message, Snackbar.LENGTH_LONG)
+        Snackbar.make(act.findViewById(android.R.id.content), message, Snackbar.LENGTH_INDEFINITE)
                 .setAction(R.string.button_label_request_permission, new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
