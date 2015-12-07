@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">PermissionHelper</string>
+    <string name="button_label_request_permission">요청</string>
+</resources>
