@@ -30,13 +30,19 @@ public class SampleActivity extends Activity {
                         .setActionGranted(new Runnable() {
                             @Override
                             public void run() {
-                                showToast("Permission granted");
+                                showToast("Permission granted.");
                             }
                         })
                         .setActionDenied(new Runnable() {
                             @Override
                             public void run() {
-                                showToast("Permission denied");
+                                showToast("Permission denied.");
+                            }
+                        })
+                        .setActionDeniedAlwayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                showToast("Permission denied always.");
                             }
                         })
                         .setActionShouldRational(R.string.message_read_external_storage)

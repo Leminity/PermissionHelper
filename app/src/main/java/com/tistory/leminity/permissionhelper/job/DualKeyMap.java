@@ -23,14 +23,17 @@ class DualKeyMap<K1, K2, V>  {
             mDualKeyMap.put(k1, childMap);
         }
 
-        V previousV = childMap.put(k2, v);
-        if(previousV != null)
-            throw new IllegalStateException("already exist.[" + previousV + "]");
-
+        childMap.put(k2, v);
+//        V previousV = childMap.put(k2, v);
+//        if(previousV != null)
+//            throw new IllegalStateException("already exist.[" + previousV + "]");
     }
 
     public V remove(K1 k1, K2 k2) {
         Map<K2, V> childMap = mDualKeyMap.get(k1);
+
+        if(childMap == null)
+            return null;
 
         V v = childMap.remove(k2);
         if(childMap.size() <= 0) {
@@ -40,7 +43,7 @@ class DualKeyMap<K1, K2, V>  {
         return v;
     }
 
-    public boolean removeAllJobByActivity(K1 k1) {
+    public boolean removeAllJob(K1 k1) {
         Map<K2, V> childMap = mDualKeyMap.remove(k1);
 
         if(childMap != null){

@@ -1,6 +1,6 @@
 package com.tistory.leminity.permissionhelper.job;
 
-import android.app.Activity;
+import java.util.Arrays;
 
 /**
  * Created by leminity on 2015-12-02.
@@ -10,26 +10,34 @@ import android.app.Activity;
  * History
  * - 2015-12-02 : 최초작성
  */
-class JobItem {
+public class JobItem {
 
-    private Activity    activity;    //Key 1
+    private Object      uiComponent;    //Key 1
     private int         requestCode; //Key 2
+    private String[]    permissions;
     private Runnable    runWhenGranted;
     private Runnable    runWhenDenied;
+    private Runnable runWhenDeniedAlways;
 
-    public JobItem(Activity activity, int requestCode, Runnable runWhenGranted, Runnable runWhenDenied) {
-        this.activity = activity;
+    public JobItem(Object uiComponent, String[] permissions, int requestCode, Runnable runWhenGranted, Runnable runWhenDenied, Runnable runWhenDeniedAlways) {
+        this.uiComponent = uiComponent;
         this.requestCode = requestCode;
+        this.permissions = permissions;
         this.runWhenGranted = runWhenGranted;
         this.runWhenDenied = runWhenDenied;
+        this.runWhenDeniedAlways = runWhenDeniedAlways;
     }
 
-    public Activity getActivity() {
-        return activity;
+    public Object getActivity() {
+        return uiComponent;
     }
 
     public int getRequestCode() {
         return requestCode;
+    }
+
+    public String[] getPermissions() {
+        return permissions;
     }
 
     public Runnable getRunWhenGranted() {
@@ -40,13 +48,23 @@ class JobItem {
         return runWhenDenied;
     }
 
+    public Runnable getRunWhenDeniedAlways() {
+        return runWhenDeniedAlways;
+    }
+
+    public void setRunWhenDeniedAlways(Runnable runWhenDeniedAlways) {
+        this.runWhenDeniedAlways = runWhenDeniedAlways;
+    }
+
     @Override
     public String toString() {
         return "JobItem{" +
-                "activity=" + activity.getClass().getSimpleName() +
+                "uiComponent=" + uiComponent.getClass().getSimpleName() +
                 ", requestCode=" + requestCode +
+                ", permissions=" + Arrays.toString(permissions) +
                 ", runWhenGranted=" + runWhenGranted +
                 ", runWhenDenied=" + runWhenDenied +
+                ", runWhenDeniedAlways=" + runWhenDeniedAlways +
                 '}';
     }
 }

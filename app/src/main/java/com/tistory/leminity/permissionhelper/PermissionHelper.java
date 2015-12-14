@@ -1,16 +1,13 @@
 package com.tistory.leminity.permissionhelper;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
-import android.content.pm.PackageManager;
 import android.os.Build;
 import android.support.annotation.NonNull;
-import android.support.design.widget.Snackbar;
-import android.support.v4.app.ActivityCompat;
-import android.text.TextUtils;
-import android.view.View;
 
-import com.tistory.leminity.permissionhelper.job.JobManager;
+import com.tistory.leminity.permissionhelper.request.PermissionRequester;
+import com.tistory.leminity.permissionhelper.request.PermissionRequester.RequestOrigin;
 
 /**
  * Created by leminity on 2015-12-02.
@@ -34,52 +31,79 @@ public class PermissionHelper {
      * 3. 권한 허용/거부에 따른 로직 처리 및 캐시 해제
      *
      */
-    private static final JobManager JOBMANAGER = new JobManager();
+    private Context                         mCtx;
+    private RequestOrigin                   mRequestOrigin;
 
-    private Activity mAct;
-    private String[] mPermissions;
-    private int      mRequestCode;
-    private Runnable mRunGranted;
-    private Runnable mRunDenied;
-    private String   mShouldRational;
+    private Object                          mTargetUICompnent; //activity, fragment, support-fragment
+    private String[]                        mPermissions;
+    private int                             mRequestCode;
+    private Runnable                        mRunGranted;
+    private Runnable                        mRunDenied;
+    private Runnable mRunDeniedAlways;
+    private String                          mShouldRational;
 
-    private PermissionHelper(@NonNull Activity act,@NonNull String[] permissions,int requestCode) {
-        this.mAct = act;
+    private PermissionHelper(Context ctx, @NonNull String[] permissions, int requestCode) {
+        this.mCtx         = ctx;
         this.mPermissions = permissions;
         this.mRequestCode = requestCode;
     }
 
-    public static PermissionHelper requestPermission(@NonNull android.app.Fragment fragment,@NonNull String permission, int requestCode) {
-        return requestPermission(fragment.getActivity(), new String[]{permission}, requestCode);
+    private PermissionHelper(@NonNull Activity act,
+                             @NonNull String[] permissions,
+                             int requestCode) {
+        this(act.getBaseContext(), permissions, requestCode);
+        this.mTargetUICompnent = act;
+        mRequestOrigin = RequestOrigin.ACTIVITY;
     }
 
+    private PermissionHelper(@NonNull android.app.Fragment fragment,
+                             @NonNull String[] permissions,
+                             int requestCode) {
+        this(fragment.getActivity().getBaseContext(), permissions, requestCode);
+        this.mTargetUICompnent = fragment;
+        mRequestOrigin = RequestOrigin.DEFAULT_FRAGMENT;
+    }
+
+    private PermissionHelper(@NonNull android.support.v4.app.Fragment fragment,
+                             @NonNull String[] permissions,
+                             int requestCode) {
+        this(fragment.getContext(), permissions, requestCode);
+        this.mTargetUICompnent = fragment;
+        mRequestOrigin = RequestOrigin.SUPPORT_FRAGMENT;
+    }
+
+    /**************************************************************************************************************************************
+     * Create Instance
+     **************************************************************************************************************************************/
+    @TargetApi(Build.VERSION_CODES.M)
+    public static PermissionHelper requestPermission(@NonNull android.app.Fragment fragment,@NonNull String permission, int requestCode) {
+        return requestPermission(fragment, new String[]{permission}, requestCode);
+    }
+
+    @TargetApi(Build.VERSION_CODES.M)
     public static PermissionHelper requestPermission(@NonNull android.app.Fragment fragment,@NonNull String[] permissions, int requestCode) {
-        return (new PermissionHelper(fragment.getActivity(), permissions, requestCode));
+        return (new PermissionHelper(fragment, permissions, requestCode));
     }
 
     public static PermissionHelper requestPermission(@NonNull android.support.v4.app.Fragment fragment,@NonNull String permission, int requestCode) {
-        return requestPermission(fragment.getActivity(), new String[]{permission}, requestCode);
+        return requestPermission(fragment, new String[]{permission}, requestCode);
     }
 
     public static PermissionHelper requestPermission(@NonNull android.support.v4.app.Fragment fragment,@NonNull String[] permissions, int requestCode) {
-        return (new PermissionHelper(fragment.getActivity(), permissions, requestCode));
+        return (new PermissionHelper(fragment, permissions, requestCode));
     }
 
     public static PermissionHelper requestPermission(@NonNull Activity act,@NonNull String permission, int requestCode) {
         return requestPermission(act, new String[]{permission}, requestCode);
     }
 
-    /**
-     * 권한 요청 인스턴스를 생성한다.
-     * @param act
-     * @param permissions
-     * @param requestCode
-     * @return
-     */
     public static PermissionHelper requestPermission(@NonNull Activity act,@NonNull String[] permissions, int requestCode) {
         return (new PermissionHelper(act, permissions, requestCode));
     }
 
+    /**************************************************************************************************************************************
+     * public api
+     **************************************************************************************************************************************/
     public PermissionHelper setActionGranted(Runnable run){
         this.mRunGranted = run;
         return this;
@@ -90,137 +114,47 @@ public class PermissionHelper {
         return this;
     }
 
+    public PermissionHelper setActionDeniedAlwayed(Runnable run) {
+        mRunDeniedAlways = run;
+        return this;
+    }
+
     public PermissionHelper setActionShouldRational(int stringResourceId) {
-        this.mShouldRational = mAct.getString(stringResourceId);
+        this.mShouldRational = mCtx.getString(stringResourceId);
         return this;
     }
 
     public void execute() {
-        this.execute(mAct, mPermissions, mRequestCode, mRunGranted, mRunDenied, mShouldRational);
-    }
-
-    private void execute(Activity act,
-                         String[] permissions,
-                         int      requestCode,
-                         Runnable runWhenAllow,
-                         Runnable runWhenDenied,
-                         String   shouldRational) {
-        //권한 있으면 그냥 동작 실행
-        if(this.hasPermissions(act.getBaseContext(), permissions)){
-            if(runWhenAllow != null)
-                runWhenAllow.run();
-            return;
-        }
-
-        //권한 없으면.. 불행의 시작
-        JOBMANAGER.addJob(act, requestCode, runWhenAllow, runWhenDenied);
-        requestPermission(act, requestCode, permissions, shouldRational);
-    }
-
-    /**
-     * 요청된 권한들이 허용되어 있는지 확인한다.
-     * @param ctx
-     * @param permissions
-     * @return <p>
-     *      true  - 요청된 권한 목록이 전부 허용인 경우 <p>
-     *      false - 요청된 권한 목록 중 한개라도 미허용인 경우
-     */
-    private boolean hasPermissions(Context ctx, String[] permissions){
-        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.M)
-            return true;
-
-        int permCnt = permissions.length;
-        for (int i = 0; i < permCnt; i++) {
-            if(ActivityCompat.checkSelfPermission(ctx, permissions[i]) != PackageManager.PERMISSION_GRANTED)
-                return false;
-        }
-
-        return true;
-    }
-
-    /**
-     * 권한 요청(for marshmallow or Above only)
-     */
-    private void requestPermission(final Activity act,
-                                   final int      requestCode,
-                                   final String[] permissions,
-                                   final String   shouldRational) {
-
-        if (shouldShowRequestPermissionsRational(act, permissions)) {
-            if(TextUtils.isEmpty(shouldRational) != true) {
-                this.showShouldRationalSnackBar(mAct, shouldRational, requestCode, new Runnable() {
-                    @Override
-                    public void run() {
-                        ActivityCompat.requestPermissions(act, permissions, requestCode);
-                    }
-                });
-            } else {
-                int[] grantResults = new int[permissions.length];
-                for (int result : grantResults)
-                    result = PackageManager.PERMISSION_DENIED;
-                callbackPermissionResult(act, requestCode, grantResults);
-
-            }
-            return;
-        }
-
-        ActivityCompat.requestPermissions(act, permissions, requestCode);
-    }
-
-    private boolean shouldShowRequestPermissionsRational(Activity act, String[] permissions) {
-        int permCnt = permissions.length;
-        for (int i = 0; i < permCnt; i++) {
-            if(ActivityCompat.shouldShowRequestPermissionRationale(act, permissions[i]))
-                return true;
-        }
-        return false;
+        PermissionRequester.request(mRequestOrigin, mTargetUICompnent, mPermissions, mRequestCode, mRunGranted, mRunDenied, mRunDeniedAlways, mShouldRational);
     }
 
     public static void callbackPermissionResult(Activity activity, int requestCode, int[] grantResult) {
-        boolean isAllowPermission = verifyPermissions(grantResult);
-        Runnable run = JOBMANAGER.removeJob(activity, requestCode, isAllowPermission);
-
-        if(run != null)
-            run.run();
+        PermissionRequester.executeJob(activity, requestCode, grantResult);
     }
 
-    private static boolean verifyPermissions(int[] grantResult) {
-        int resultCnt = grantResult.length;
+    public static void callbackPermissionResult(android.support.v4.app.Fragment fragment, int requestCode, int[] grantResult) {
+        PermissionRequester.executeJob(fragment, requestCode, grantResult);
+    }
 
-        if(resultCnt <= 0)
-            return false;
-
-        for (int i = 0; i < resultCnt; i++) {
-            if(grantResult[i] != PackageManager.PERMISSION_GRANTED)
-                return false;
-        }
-
-        return true;
+    public static void callbackPermissionResult(android.app.Fragment fragment, int requestCode, int[] grantResult) {
+        PermissionRequester.executeJob(fragment, requestCode, grantResult);
     }
 
     public static void activityDestroyed(Activity activity) {
-        JOBMANAGER.removeAllJob(activity);
+        PermissionRequester.removeAllJob(activity);
     }
 
-    private void showShouldRationalSnackBar(final Activity act, String message, final int requestCode, final Runnable run) {
-        Snackbar.make(act.findViewById(android.R.id.content), message, Snackbar.LENGTH_INDEFINITE)
-                .setAction(R.string.button_label_request_permission, new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        if(run != null)
-                            run.run();
-                    }
-                })
-                .setCallback(new Snackbar.Callback() {
-                    @Override
-                    public void onDismissed(Snackbar snackbar, int event) {
-                        super.onDismissed(snackbar, event);
-
-                        if(event == Snackbar.Callback.DISMISS_EVENT_TIMEOUT)
-                            JOBMANAGER.removeJob(act, requestCode, false);
-                    }
-                })
-                .show();
+    public static void fragmentDestroyed(android.app.Fragment fragment) {
+        PermissionRequester.removeAllJob(fragment);
     }
+
+    public static void fragmentDestroyed(android.support.v4.app.Fragment fragment) {
+        PermissionRequester.removeAllJob(fragment);
+    }
+
+    /**************************************************************************************************************************************
+     * private api
+     **************************************************************************************************************************************/
+
 
 }

@@ -1,7 +1,5 @@
 package com.tistory.leminity.permissionhelper.job;
 
-import android.app.Activity;
-
 /**
  * Created by leminity on 2015-12-02.
  * <p/>
@@ -13,36 +11,36 @@ import android.app.Activity;
  */
 public class JobManager {
 
-    private DualKeyMap<Activity, Integer, JobItem> mJobMap = new DualKeyMap();
+    private DualKeyMap<Object, Integer, JobItem> mJobMap = new DualKeyMap();
 
     /**
      * 잡을 추가한다.
-     * @param activity
+     * @param targetUIComponent
      * @param requestCode
      * @param runWhenDenied
      */
-    public void addJob(Activity activity, int requestCode, Runnable runWhenGranted, Runnable runWhenDenied) {
-        JobItem newJob = new JobItem(activity, requestCode, runWhenGranted, runWhenDenied);
-        mJobMap.add(activity, requestCode, newJob);
+    public void addJob(Object targetUIComponent, String[] permissions, int requestCode, Runnable runWhenGranted, Runnable runWhenDenied, Runnable runWhenDeniedAlways) {
+        JobItem newJob = new JobItem(targetUIComponent, permissions, requestCode, runWhenGranted, runWhenDenied, runWhenDeniedAlways);
+        mJobMap.add(targetUIComponent, requestCode, newJob);
     }
 
     /**
      * 작업을 제거한다.
-     * @param activity
+     * @param targetUIComponent
      * @param requestCode
      */
-    public Runnable removeJob(Activity activity, int requestCode, boolean isAllowPermission) {
-        JobItem jobItem = mJobMap.remove(activity, requestCode);
-        return (isAllowPermission ? jobItem.getRunWhenGranted() : jobItem.getRunWhenDenied());
+    public JobItem removeJob(Object targetUIComponent, int requestCode) {
+        JobItem jobItem = mJobMap.remove(targetUIComponent, requestCode);
+        return jobItem;
     }
 
     /**
-     * Activity의 onDestroy가 호출된 경우 삭제해야 한다.
+     * Activity, Fragment, Support-Fragment 등에서 onDestroy가 호출된 경우 삭제해야 한다.
      * 호출되지 않으면 메모리 릭 발생.
-     * @param activity
+     * @param targetUIComponent
      */
-    public void removeAllJob(Activity activity) {
-        mJobMap.removeAllJobByActivity(activity);
+    public void removeAllJob(Object targetUIComponent) {
+        mJobMap.removeAllJob(targetUIComponent);
     }
 
 }
