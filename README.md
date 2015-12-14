@@ -64,6 +64,7 @@ protected void onDestroy() {
 2. Set Action When grant or deny by user. **(optional)**
  - setActionGranted(Runnable run)
  - setActionDenied(Runnable run)
+ - setActionDeniedAlways(Runnable run)
 
 3. Set message When you need should rational. **(optional)**
  - setActionShouldRational(int stringResourceId)
