@@ -7,7 +7,6 @@ import android.os.Build;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.View;
 
 import com.tistory.leminity.permissionhelper.R;
@@ -115,22 +114,20 @@ abstract class AbstractRequester<T> {
 
     final static void runJob(Object targetUIComponent, int requestCode, boolean isAllowPermission) {
         JobItem jobItem = JOBMANAGER.removeJob(targetUIComponent, requestCode);
-        Log.d("leminity", "check to ddd :: " + jobItem.toString());
+        if(jobItem == null)
+            return;
 
         Runnable run = null;
 
         if(isAllowPermission) {
             run = jobItem.getRunWhenGranted();
         } else {
-            Log.d("leminity", "check to always denied :: " + isPermissionDeniedAlways(targetUIComponent, jobItem.getPermissions()));
             if(isPermissionDeniedAlways(targetUIComponent, jobItem.getPermissions()) != true){
                 run = jobItem.getRunWhenDenied();
             } else {
                 run = jobItem.getRunWhenDeniedAlways();
             }
         }
-
-        Log.d("leminity", "check to runJob is null :: " + run);
 
         if(run != null)
             run.run();

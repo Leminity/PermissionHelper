@@ -1,7 +1,6 @@
 package com.tistory.leminity.permissionhelper.request;
 
 import android.content.pm.PackageManager;
-import android.util.Log;
 
 /**
  * Created by leminity on 2015-12-08.
@@ -60,7 +59,6 @@ public class PermissionRequester {
     }
 
     public static void executeJob(Object targetUIComponent, int requestCode, int[] grantResult) {
-        Log.d("leminity", "check to executeJob");
         boolean isGranted = verifyPermissions(grantResult);
         AbstractRequester.runJob(targetUIComponent, requestCode, isGranted);
     }
