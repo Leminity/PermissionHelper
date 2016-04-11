@@ -6,6 +6,7 @@ import android.content.Context;
 import android.os.Build;
 import android.support.annotation.NonNull;
 
+import com.tistory.leminity.permissionhelper.request.OnCallbackShouldRational;
 import com.tistory.leminity.permissionhelper.request.PermissionRequester;
 import com.tistory.leminity.permissionhelper.request.PermissionRequester.RequestOrigin;
 
@@ -17,6 +18,9 @@ import com.tistory.leminity.permissionhelper.request.PermissionRequester.Request
  *                구글 정도면 이유가 있겠지... 근데 난 잘 모르겠다. 라고 생각하며 분노로 가득찬 상태로 만들어진 권한 체크 및 로직 실행 유틸
  * History
  * - 2015-12-02 : 최초작성
+ * - 2016-04-11 : ShouldRational 상황에서, 내부 스낵바 출력 대신 사용자에게 처리를 위임시킴.
+ *                (디자인 서포트 라이브러리 의존성 제거. 스낵바 사용 제거.)
+ *
  */
 public class PermissionHelper {
 
@@ -38,9 +42,9 @@ public class PermissionHelper {
     private String[]                        mPermissions;
     private int                             mRequestCode;
     private Runnable                        mRunGranted;
+    private OnCallbackShouldRational        mRunShouldRational;
     private Runnable                        mRunDenied;
-    private Runnable mRunDeniedAlways;
-    private String                          mShouldRational;
+    private Runnable                        mRunDeniedAlways;
 
     private PermissionHelper(Context ctx, @NonNull String[] permissions, int requestCode) {
         this.mCtx         = ctx;
@@ -119,13 +123,13 @@ public class PermissionHelper {
         return this;
     }
 
-    public PermissionHelper setActionShouldRational(int stringResourceId) {
-        this.mShouldRational = mCtx.getString(stringResourceId);
+    public PermissionHelper setActionShouldRational(OnCallbackShouldRational run) {
+        mRunShouldRational = run;
         return this;
     }
 
     public void execute() {
-        PermissionRequester.request(mRequestOrigin, mTargetUICompnent, mPermissions, mRequestCode, mRunGranted, mRunDenied, mRunDeniedAlways, mShouldRational);
+        PermissionRequester.request(mRequestOrigin, mTargetUICompnent, mPermissions, mRequestCode, mRunGranted, mRunShouldRational, mRunDenied, mRunDeniedAlways);
     }
 
     public static void callbackPermissionResult(Activity activity, int requestCode, int[] grantResult) {
@@ -151,10 +155,5 @@ public class PermissionHelper {
     public static void fragmentDestroyed(android.support.v4.app.Fragment fragment) {
         PermissionRequester.removeAllJob(fragment);
     }
-
-    /**************************************************************************************************************************************
-     * private api
-     **************************************************************************************************************************************/
-
 
 }

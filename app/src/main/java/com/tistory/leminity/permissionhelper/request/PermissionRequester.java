@@ -9,6 +9,7 @@ import android.content.pm.PackageManager;
  * Description  :
  * History
  * - 2015-12-08 : 최초작성
+ * - 2016-04-11 : change action instance when should rational.
  */
 public class PermissionRequester {
 
@@ -18,14 +19,14 @@ public class PermissionRequester {
         SUPPORT_FRAGMENT
     }
 
-    public static void request(RequestOrigin    origin,
-                               Object           targetUICompnent,
-                               String[]         permissions,
-                               int              requestCode,
-                               Runnable         runWhenAllow,
-                               Runnable         runWhenDenied,
-                               Runnable         runWhenDeniedAlways,
-                               String           shouldRational) {
+    public static void request(RequestOrigin            origin,
+                               Object                   targetUICompnent,
+                               String[]                 permissions,
+                               int                      requestCode,
+                               Runnable                 runWhenAllow,
+                               OnCallbackShouldRational runWhenShouldRational,
+                               Runnable                 runWhenDenied,
+                               Runnable                 runWhenDeniedAlways) {
         AbstractRequester requester = null;
         switch (origin) {
             case ACTIVITY:
@@ -41,7 +42,7 @@ public class PermissionRequester {
                 //not exist(because PermissionHelper api's not allow other case.
                 break;
         }
-        requester.execute(targetUICompnent, permissions, requestCode, runWhenAllow, runWhenDenied, runWhenDeniedAlways, shouldRational);
+        requester.execute(targetUICompnent, permissions, requestCode, runWhenAllow, runWhenShouldRational, runWhenDenied, runWhenDeniedAlways);
     }
 
     static boolean verifyPermissions(int[] grantResult) {

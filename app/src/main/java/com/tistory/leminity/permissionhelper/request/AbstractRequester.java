@@ -4,12 +4,8 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Build;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
-import android.text.TextUtils;
-import android.view.View;
 
-import com.tistory.leminity.permissionhelper.R;
 import com.tistory.leminity.permissionhelper.job.JobItem;
 import com.tistory.leminity.permissionhelper.job.JobManager;
 
@@ -20,6 +16,7 @@ import com.tistory.leminity.permissionhelper.job.JobManager;
  * Description  :
  * History
  * - 2015-12-08 : 최초작성
+ * - 2016-04-11 : remove dependency Design Support Library & Snack bar.
  */
 abstract class AbstractRequester<T> {
 
@@ -29,7 +26,7 @@ abstract class AbstractRequester<T> {
     abstract void       requestPermissionImpl(T t, String[] permissions, int requestCode);
     abstract boolean    shouldShowRequestPermissionsRationalImpl(T t, String permission);
 
-    final void execute(T t, String[] permissions, int requestCode, Runnable runWhenAllow, Runnable runWhenDenied, Runnable runWhenDeniedAlways, String shouldRational) {
+    final void execute(T t, String[] permissions, int requestCode, Runnable runWhenAllow, OnCallbackShouldRational runWhenShouldRational, Runnable runWhenDenied, Runnable runWhenDeniedAlways) {
         //권한 있으면 그냥 동작 실행
         if (hasPermissions(getActivity(t), permissions)) {
             if (runWhenAllow != null)
@@ -39,7 +36,7 @@ abstract class AbstractRequester<T> {
 
         //권한 없으면.. 불행의 시작
         JOBMANAGER.addJob(t, permissions, requestCode, runWhenAllow, runWhenDenied, runWhenDeniedAlways);
-        requestPermission(t, requestCode, permissions, shouldRational);
+        requestPermission(t, requestCode, permissions, runWhenShouldRational);
     }
 
     /**
@@ -63,20 +60,12 @@ abstract class AbstractRequester<T> {
         return true;
     }
 
-    private void requestPermission(T t, final int requestCode, final String[] permissions, String shouldRational) {
-        final T tTmp = t;
-
+    private void requestPermission(T t, final int requestCode, final String[] permissions, OnCallbackShouldRational onCallbackShouldRational) {
         if (shouldShowRequestPermissionsRational(t, permissions)) { //거부
-            if(TextUtils.isEmpty(shouldRational) != true) {
-                showShouldRationalSnackBar(t, shouldRational, requestCode, new Runnable() {
-                    @Override
-                    public void run() {
-                        requestPermissionImpl(tTmp, permissions, requestCode);
-                    }
-                });
-                return;
-            }
+            callbackShouldRational(onCallbackShouldRational, t, permissions, requestCode);
+            return;
         }
+
         requestPermissionImpl(t, permissions, requestCode);
     }
 
@@ -91,25 +80,26 @@ abstract class AbstractRequester<T> {
         return false;
     }
 
-    private void showShouldRationalSnackBar(final T t, String message, final int requestCode, final Runnable run) {
-        Snackbar.make(getActivity(t).findViewById(android.R.id.content), message, Snackbar.LENGTH_LONG)
-                .setAction(R.string.button_label_request_permission, new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        if (run != null)
-                            run.run();
-                    }
-                })
-                .setCallback(new Snackbar.Callback() {
-                    @Override
-                    public void onDismissed(Snackbar snackbar, int event) {
-                        super.onDismissed(snackbar, event);
-
-                        if (event == Snackbar.Callback.DISMISS_EVENT_TIMEOUT)
+    private void callbackShouldRational(OnCallbackShouldRational onCallbackShouldRational, final T t, final String[] permissions, final int requestCode) {
+        if(onCallbackShouldRational != null) {
+            onCallbackShouldRational.onCallbackShouldRational(
+                    new Runnable() { //confirm permission request.
+                        @Override
+                        public void run() {
+                            requestPermissionImpl(t, permissions, requestCode);
+                        }
+                    },
+                    new Runnable() { //denied permission request.
+                        @Override
+                        public void run() {
                             JOBMANAGER.removeJob(t, requestCode);
+                        }
                     }
-                })
-                .show();
+            );
+            return;
+        }
+
+        JOBMANAGER.removeJob(t, requestCode);
     }
 
     final static void runJob(Object targetUIComponent, int requestCode, boolean isAllowPermission) {
