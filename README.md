@@ -16,25 +16,25 @@ public class SampleActivity extends Activity {
             public void onClick(View v) {
                 PermissionHelper
                         .requestPermission(SampleActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE, 123)
-                        .setActionGranted(new Runnable() {
+                        .setActionGranted(new Runnable() { //optional
                             @Override
                             public void run() {
                                 showToast("Permission granted.");
                             }
                         })
-                        .setActionDenied(new Runnable() {
+                        .setActionDenied(new Runnable() { //optional
                             @Override
                             public void run() {
                                 showToast("Permission denied.");
                             }
                         })
-                        .setActionDeniedAlwayed(new Runnable() {
+                        .setActionDeniedAlwayed(new Runnable() { //optional
                             @Override
                             public void run() {
                                 showToast("Permission denied always.");
                             }
                         })
-                        .setActionShouldRational(new OnCallbackShouldRational() {
+                        .setActionShouldRational(new OnCallbackShouldRational() { //optional
                             @Override
                             public void onCallbackShouldRational(final Runnable requestPermission, final Runnable deniedPermission) {
                                 AlertDialog alertDialog = new AlertDialog.Builder(SampleActivity.this)
