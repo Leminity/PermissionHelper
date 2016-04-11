@@ -97,7 +97,7 @@ public class SampleActivity extends Activity {
  - setActionDeniedAlways(Runnable run)
 
 3. Set message When you need should rational. **(optional)**
- - setActionShouldRational(int stringResourceId)
+ - setActionShouldRational(OnCallbackShouldRational run)
  
 4. call helperInstance.callbackPermissionResult on Activity or Fragment's onRequestPermissionsResult method. **(Required)**
  - callbackPermissionResult(Activity activity, int requestCode, int[] grantResult)
