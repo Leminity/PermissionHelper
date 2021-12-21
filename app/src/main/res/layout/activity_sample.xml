@@ -1,11 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent" android:layout_height="match_parent">
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
 
     <Button
-        android:id="@+id/buttonRequestPerm"
+        android:id="@+id/button_activity_default"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="request permission" />
+        android:text="Sample android.app.Activity"
+        android:textColor="@android:color/black" />
+
+    <Button
+        android:id="@+id/button_fragment_default"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Sample android.app.Fragment"
+        android:textColor="@android:color/black" />
+
+    <Button
+        android:id="@+id/button_activity_androidx"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Sample androidx.appcompat.app.AppCompatActivity"
+        android:textColor="@android:color/black" />
+
+    <Button
+        android:id="@+id/button_fragment_androidx"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Sample androidx.fragment.app.Fragment"
+        android:textColor="@android:color/black" />
 
 </LinearLayout>

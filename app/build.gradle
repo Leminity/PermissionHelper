@@ -1,15 +1,17 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 23
-    buildToolsVersion "23.0.2"
+    def rootExt = rootProject.ext;
+
+    compileSdkVersion rootExt.compileSdkVer
+    buildToolsVersion rootExt.buildToolsVer
 
     defaultConfig {
-        applicationId "com.tistory.leminity.permissionhelper"
-        minSdkVersion 16
-        targetSdkVersion 23
-        versionCode 1
-        versionName "1.0"
+        applicationId "com.tistory.leminity.permissionhelper.sample"
+        minSdkVersion rootExt.minSdkVer
+        targetSdkVersion rootExt.targetSdkVer
+        versionCode rootExt.appVersionCode
+        versionName rootExt.appVersionName
     }
     buildTypes {
         release {
@@ -17,10 +19,12 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    buildFeatures {
+        viewBinding true
+    }
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    testCompile 'junit:junit:4.12'
-    compile 'com.android.support:appcompat-v7:23.1.0'
+    implementation "androidx.appcompat:appcompat:$appCompatVer"
+    implementation project(':library')
 }
