@@ -1,6 +1,7 @@
 package com.tistory.leminity.permissionhelper.request.osapi;
 
 
+import com.tistory.leminity.permissionhelper.job.IPermissionResult;
 import com.tistory.leminity.permissionhelper.job.JobManager;
 import com.tistory.leminity.permissionhelper.request.AbstractRequester;
 import com.tistory.leminity.permissionhelper.request.OnCallbackShouldRational;
@@ -24,6 +25,7 @@ abstract class AbstractDefaultRequester<T extends Object> extends AbstractReques
                         Runnable runWhenAllow,
                         Runnable runWhenDenied,
                         Runnable runWhenDeniedAlways,
+                        IPermissionResult iPermissionResult,
                         OnCallbackShouldRational runWhenShouldRational) {
 
         //권한 있으면 그냥 동작 실행
@@ -35,7 +37,7 @@ abstract class AbstractDefaultRequester<T extends Object> extends AbstractReques
 
         //권한 없으면.. 불행의 시작
         JobManager jobManager = getJobManager();
-        jobManager.addJob(t, permissions, requestCode, runWhenAllow, runWhenDenied, runWhenDeniedAlways);
+        jobManager.addJob(t, permissions, requestCode, runWhenAllow, runWhenDenied, runWhenDeniedAlways, iPermissionResult);
         requestPermission(t, requestCode, permissions, runWhenShouldRational);
     }
 

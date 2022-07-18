@@ -2,6 +2,7 @@ package com.tistory.leminity.permissionhelper.request.supportapi;
 
 import androidx.activity.result.ActivityResultLauncher;
 
+import com.tistory.leminity.permissionhelper.job.IPermissionResult;
 import com.tistory.leminity.permissionhelper.job.JobManager;
 import com.tistory.leminity.permissionhelper.request.AbstractRequester;
 import com.tistory.leminity.permissionhelper.request.OnCallbackShouldRational;
@@ -27,6 +28,7 @@ abstract class AbstractSupportRequester<T extends Object> extends AbstractReques
                         Runnable runWhenAllow,
                         Runnable runWhenDenied,
                         Runnable runWhenDeniedAlways,
+                        IPermissionResult iPermissionResult,
                         OnCallbackShouldRational runWhenShouldRational) {
 
         //권한 있으면 그냥 동작 실행
@@ -37,7 +39,7 @@ abstract class AbstractSupportRequester<T extends Object> extends AbstractReques
         }
 
         //권한 없으면.. 불행의 시작
-        requestPermission(t, activityResultLauncher, requestCode, permissions, runWhenAllow, runWhenDenied, runWhenDeniedAlways, runWhenShouldRational);
+        requestPermission(t, activityResultLauncher, requestCode, permissions, runWhenAllow, runWhenDenied, runWhenDeniedAlways, iPermissionResult, runWhenShouldRational);
     }
 
     private void requestPermission(T t,
@@ -47,6 +49,7 @@ abstract class AbstractSupportRequester<T extends Object> extends AbstractReques
                                    Runnable runAllow,
                                    Runnable runDenied,
                                    Runnable runDeniedAlways,
+                                   IPermissionResult iPermissionResult,
                                    OnCallbackShouldRational onCallbackShouldRational) {
 
         if (onCallbackShouldRational != null) {
@@ -61,7 +64,7 @@ abstract class AbstractSupportRequester<T extends Object> extends AbstractReques
         }
 
         JobManager jobManager = getJobManager();
-        jobManager.addJob(t, permissions, requestCode, runAllow, runDenied, runDeniedAlways);
+        jobManager.addJob(t, permissions, requestCode, runAllow, runDenied, runDeniedAlways, iPermissionResult);
         requestPermissionImpl(activityResultLauncher, permissions);
     }
 

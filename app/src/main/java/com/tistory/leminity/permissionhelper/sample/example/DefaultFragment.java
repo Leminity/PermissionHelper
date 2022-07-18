@@ -66,7 +66,7 @@ public class DefaultFragment extends Fragment {
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        PermissionHelper.callbackPermissionResult(DefaultFragment.this, requestCode, grantResults);
+        PermissionHelper.callbackPermissionResult(DefaultFragment.this, requestCode, permissions, grantResults);
     }
 
     @Override

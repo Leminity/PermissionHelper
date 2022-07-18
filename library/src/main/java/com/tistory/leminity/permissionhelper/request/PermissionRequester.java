@@ -7,6 +7,7 @@ import android.content.pm.PackageManager;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.tistory.leminity.permissionhelper.job.IPermissionResult;
 import com.tistory.leminity.permissionhelper.request.osapi.ActivityDefaultRequesterImpl;
 import com.tistory.leminity.permissionhelper.request.osapi.FragmentDefaultRequesterImpl;
 import com.tistory.leminity.permissionhelper.request.supportapi.SupportActivityRequesterImpl;
@@ -33,12 +34,18 @@ public class PermissionRequester {
                                Runnable runWhenAllow,
                                OnCallbackShouldRational runWhenShouldRational,
                                Runnable runWhenDenied,
-                               Runnable runWhenDeniedAlways) {
+                               Runnable runWhenDeniedAlways,
+                               IPermissionResult iPermissionResult) {
+
         ActivityDefaultRequesterImpl requester = new ActivityDefaultRequesterImpl();
         requester.execute(activity,
                 permissions,
                 requestCode,
-                runWhenAllow, runWhenDenied, runWhenDeniedAlways, runWhenShouldRational);
+                runWhenAllow,
+                runWhenDenied,
+                runWhenDeniedAlways,
+                iPermissionResult,
+                runWhenShouldRational);
     }
 
     public static void request(Fragment fragment,
@@ -47,9 +54,18 @@ public class PermissionRequester {
                                Runnable runWhenAllow,
                                OnCallbackShouldRational runWhenShouldRational,
                                Runnable runWhenDenied,
-                               Runnable runWhenDeniedAlways) {
+                               Runnable runWhenDeniedAlways,
+                               IPermissionResult iPermissionResult) {
+
         FragmentDefaultRequesterImpl requester = new FragmentDefaultRequesterImpl();
-        requester.execute(fragment, permissions, requestCode, runWhenAllow, runWhenDenied, runWhenDeniedAlways, runWhenShouldRational);
+        requester.execute(fragment,
+                permissions,
+                requestCode,
+                runWhenAllow,
+                runWhenDenied,
+                runWhenDeniedAlways,
+                iPermissionResult,
+                runWhenShouldRational);
     }
 
     public static void request(AppCompatActivity appcompatActivity,
@@ -59,9 +75,19 @@ public class PermissionRequester {
                                Runnable runWhenAllow,
                                OnCallbackShouldRational runWhenShouldRational,
                                Runnable runWhenDenied,
-                               Runnable runWhenDeniedAlways) {
+                               Runnable runWhenDeniedAlways,
+                               IPermissionResult iPermissionResult) {
+
         SupportActivityRequesterImpl requester = new SupportActivityRequesterImpl();
-        requester.execute(appcompatActivity, activityResultLauncher, permissions, requestCode, runWhenAllow, runWhenDenied, runWhenDeniedAlways, runWhenShouldRational);
+        requester.execute(appcompatActivity,
+                activityResultLauncher,
+                permissions,
+                requestCode,
+                runWhenAllow,
+                runWhenDenied,
+                runWhenDeniedAlways,
+                iPermissionResult,
+                runWhenShouldRational);
     }
 
     public static void request(androidx.fragment.app.Fragment fragment,
@@ -71,49 +97,42 @@ public class PermissionRequester {
                                Runnable runWhenAllow,
                                OnCallbackShouldRational runWhenShouldRational,
                                Runnable runWhenDenied,
-                               Runnable runWhenDeniedAlways) {
+                               Runnable runWhenDeniedAlways,
+                               IPermissionResult iPermissionResult) {
+
         SupportFragmentRequesterImpl requester = new SupportFragmentRequesterImpl();
-        requester.execute(fragment, activityResultLauncher, permissions, requestCode, runWhenAllow, runWhenDenied, runWhenDeniedAlways, runWhenShouldRational);
+        requester.execute(fragment,
+                activityResultLauncher,
+                permissions,
+                requestCode,
+                runWhenAllow,
+                runWhenDenied,
+                runWhenDeniedAlways,
+                iPermissionResult,
+                runWhenShouldRational);
     }
 
-    static boolean verifyPermissions(int[] grantResult) {
-        int resultCnt = grantResult.length;
-
-        if (resultCnt <= 0)
-            return false;
-
-        for (int i = 0; i < resultCnt; i++) {
-            if (grantResult[i] != PackageManager.PERMISSION_GRANTED)
-                return false;
-        }
-
-        return true;
+    public static void executeJob(Object targetUIComponent, int requestCode, String[] permissions, int[] grantResults) {
+        AbstractRequester.RunJob(targetUIComponent, requestCode, permissions, grantResults);
     }
 
-    static boolean verifyPermissions(Map<String, Boolean> grantResult) {
-        Set<String> set = grantResult.keySet();
-        Iterator<String> iterator = set.iterator();
+    public static void executeJob(Object targetUIComponent, int requestCode, Map<String, Boolean> grantResultMap) {
+        int resultSize = grantResultMap.size();
+        String[] permissions = new String[resultSize];
+        int[] grantResults = new int[resultSize];
 
+        Set<String> keySet = grantResultMap.keySet();
+        Iterator<String> iterator = keySet.iterator();
+
+        int i = 0;
         while (iterator.hasNext()) {
-            String permission = iterator.next();
-            boolean grantPermission = grantResult.get(permission);
+            permissions[i] = iterator.next();
 
-            if (!grantPermission) {
-                return false;
-            }
+            boolean granted = grantResultMap.get(permissions[i]);
+            grantResults[i] = (granted ? PackageManager.PERMISSION_GRANTED : PackageManager.PERMISSION_DENIED);
         }
 
-        return true;
-    }
-
-    public static void executeJob(Object targetUIComponent, int requestCode, int[] grantResult) {
-        boolean isGranted = verifyPermissions(grantResult);
-        AbstractRequester.RunJob(targetUIComponent, requestCode, isGranted);
-    }
-
-    public static void executeJob(Object targetUIComponent, int requestCode, Map<String, Boolean> grantResult) {
-        boolean isGranted = verifyPermissions(grantResult);
-        AbstractRequester.RunJob(targetUIComponent, requestCode, isGranted);
+        AbstractRequester.RunJob(targetUIComponent, requestCode, permissions, grantResults);
     }
 
     public static void removeAllJob(Object targetUIComponent) {

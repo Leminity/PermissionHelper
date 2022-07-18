@@ -12,20 +12,29 @@ import java.util.Arrays;
  */
 public class JobItem {
 
-    private Object      uiComponent;    //Key 1
-    private int         requestCode; //Key 2
-    private String[]    permissions;
-    private Runnable    runWhenGranted;
-    private Runnable    runWhenDenied;
+    private Object uiComponent;    //Key 1
+    private int requestCode; //Key 2
+    private String[] permissions;
+    private Runnable runWhenGranted;
+    private Runnable runWhenDenied;
     private Runnable runWhenDeniedAlways;
+    private IPermissionResult iPermissionResult;
 
-    public JobItem(Object uiComponent, String[] permissions, int requestCode, Runnable runWhenGranted, Runnable runWhenDenied, Runnable runWhenDeniedAlways) {
+    public JobItem(Object uiComponent,
+                   String[] permissions,
+                   int requestCode,
+                   Runnable runWhenGranted,
+                   Runnable runWhenDenied,
+                   Runnable runWhenDeniedAlways,
+                   IPermissionResult iPermissionResult) {
+
         this.uiComponent = uiComponent;
         this.requestCode = requestCode;
         this.permissions = permissions;
         this.runWhenGranted = runWhenGranted;
         this.runWhenDenied = runWhenDenied;
         this.runWhenDeniedAlways = runWhenDeniedAlways;
+        this.iPermissionResult = iPermissionResult;
     }
 
     public Object getActivity() {
@@ -52,19 +61,20 @@ public class JobItem {
         return runWhenDeniedAlways;
     }
 
-    public void setRunWhenDeniedAlways(Runnable runWhenDeniedAlways) {
-        this.runWhenDeniedAlways = runWhenDeniedAlways;
+    public IPermissionResult getIPermissionResult() {
+        return iPermissionResult;
     }
 
     @Override
     public String toString() {
         return "JobItem{" +
-                "uiComponent=" + uiComponent.getClass().getSimpleName() +
+                "uiComponent=" + uiComponent +
                 ", requestCode=" + requestCode +
                 ", permissions=" + Arrays.toString(permissions) +
                 ", runWhenGranted=" + runWhenGranted +
                 ", runWhenDenied=" + runWhenDenied +
                 ", runWhenDeniedAlways=" + runWhenDeniedAlways +
+                ", iPermissionResult=" + iPermissionResult +
                 '}';
     }
 }

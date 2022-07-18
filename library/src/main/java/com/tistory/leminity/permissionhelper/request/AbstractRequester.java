@@ -9,6 +9,7 @@ import android.os.Build;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
+import com.tistory.leminity.permissionhelper.job.IPermissionResult;
 import com.tistory.leminity.permissionhelper.job.JobItem;
 import com.tistory.leminity.permissionhelper.job.JobManager;
 
@@ -89,25 +90,49 @@ public abstract class AbstractRequester<T> {
         return false;
     }
 
-    final static void RunJob(Object targetUIComponent, int requestCode, boolean isAllowPermission) {
+    final static void RunJob(Object targetUIComponent, int requestCode, String[] permissions, int[] grantResults) {
         JobItem jobItem = JobManager.removeJob(targetUIComponent, requestCode);
-        if (jobItem == null)
-            return;
+        if (jobItem != null) {
+            IPermissionResult iPermissionResult = jobItem.getIPermissionResult();
 
-        Runnable run = null;
+            //IPermissionResult 가 설정된 경우, grant, denied, deniedAlways 동작이 정의됬더라도 콜백하지 않음.
+            if (iPermissionResult != null) {
+                iPermissionResult.onPermissionResult(permissions, grantResults);
 
-        if (isAllowPermission) {
-            run = jobItem.getRunWhenGranted();
-        } else {
-            if (IsPermissionDeniedAlways(targetUIComponent, jobItem.getPermissions()) != true) {
-                run = jobItem.getRunWhenDenied();
             } else {
-                run = jobItem.getRunWhenDeniedAlways();
+                Runnable run = null;
+                boolean isAllowPermission = verifyPermissions(grantResults);
+
+                if (isAllowPermission) {
+                    run = jobItem.getRunWhenGranted();
+                } else {
+                    if (IsPermissionDeniedAlways(targetUIComponent, jobItem.getPermissions()) != true) {
+                        run = jobItem.getRunWhenDenied();
+                    } else {
+                        run = jobItem.getRunWhenDeniedAlways();
+                    }
+                }
+
+                if (run != null)
+                    run.run();
             }
+
         }
 
-        if (run != null)
-            run.run();
+    }
+
+    private static boolean verifyPermissions(int[] grantResult) {
+        int resultCnt = grantResult.length;
+
+        if (resultCnt <= 0)
+            return false;
+
+        for (int i = 0; i < resultCnt; i++) {
+            if (grantResult[i] != PackageManager.PERMISSION_GRANTED)
+                return false;
+        }
+
+        return true;
     }
 
     private static boolean IsPermissionDeniedAlways(Object targetUIComponent, String[] permissions) {

@@ -11,14 +11,14 @@ import java.util.Map;
  * History
  * - 2015-12-03 : 최초작성
  */
-class DualKeyMap<K1, K2, V>  {
+class DualKeyMap<K1, K2, V> {
 
     private Map<K1, Map<K2, V>> mDualKeyMap = new HashMap();
 
     public void add(K1 k1, K2 k2, V v) {
         Map<K2, V> childMap = mDualKeyMap.get(k1);
 
-        if(childMap == null) {
+        if (childMap == null) {
             childMap = new HashMap();
             mDualKeyMap.put(k1, childMap);
         }
@@ -32,11 +32,11 @@ class DualKeyMap<K1, K2, V>  {
     public V remove(K1 k1, K2 k2) {
         Map<K2, V> childMap = mDualKeyMap.get(k1);
 
-        if(childMap == null)
+        if (childMap == null)
             return null;
 
         V v = childMap.remove(k2);
-        if(childMap.size() <= 0) {
+        if (childMap.size() <= 0) {
             mDualKeyMap.remove(k1);
         }
 
@@ -46,7 +46,7 @@ class DualKeyMap<K1, K2, V>  {
     public boolean removeAllJob(K1 k1) {
         Map<K2, V> childMap = mDualKeyMap.remove(k1);
 
-        if(childMap != null){
+        if (childMap != null) {
             childMap.clear();
             return true;
         }

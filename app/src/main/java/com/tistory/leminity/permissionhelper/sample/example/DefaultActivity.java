@@ -55,7 +55,7 @@ public class DefaultActivity extends Activity {
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        PermissionHelper.callbackPermissionResult(DefaultActivity.this, requestCode, grantResults);
+        PermissionHelper.callbackPermissionResult(DefaultActivity.this, requestCode, permissions, grantResults);
     }
 
     @Override

@@ -9,6 +9,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.tistory.leminity.permissionhelper.job.IPermissionResult;
 import com.tistory.leminity.permissionhelper.request.OnCallbackShouldRational;
 import com.tistory.leminity.permissionhelper.request.PermissionRequester;
 
@@ -48,9 +49,11 @@ public class PermissionHelper {
     private OnCallbackShouldRational mRunShouldRational;
     private Runnable mRunDenied;
     private Runnable mRunDeniedAlways;
+    private IPermissionResult iPermissionResult;
 
     private PermissionHelper(@NonNull String[] permissions,
                              int requestCode) {
+
         this.mPermissions = permissions;
         this.mRequestCode = requestCode;
     }
@@ -58,6 +61,7 @@ public class PermissionHelper {
     private PermissionHelper(@NonNull Activity act,
                              @NonNull String[] permissions,
                              int requestCode) {
+
         this(permissions, requestCode);
         this.mActivity = act;
     }
@@ -65,6 +69,7 @@ public class PermissionHelper {
     private PermissionHelper(@NonNull Fragment fragment,
                              @NonNull String[] permissions,
                              int requestCode) {
+
         this(permissions, requestCode);
         this.mFragment = fragment;
     }
@@ -73,6 +78,7 @@ public class PermissionHelper {
                              ActivityResultLauncher<String[]> activityResultLauncher,
                              @NonNull String[] permissions,
                              int requestCode) {
+
         this(permissions, requestCode);
         this.mAppcompatActivity = activity;
         this.mActivityResultLauncher = activityResultLauncher;
@@ -82,6 +88,7 @@ public class PermissionHelper {
                              ActivityResultLauncher<String[]> activityResultLauncher,
                              @NonNull String[] permissions,
                              int requestCode) {
+
         this(permissions, requestCode);
         this.mAppcompatFragment = fragment;
         this.mActivityResultLauncher = activityResultLauncher;
@@ -99,6 +106,7 @@ public class PermissionHelper {
     public static PermissionHelper requestPermission(@NonNull Activity act,
                                                      @NonNull String[] permissions,
                                                      int requestCode) {
+
         return (new PermissionHelper(act, permissions, requestCode));
     }
 
@@ -122,6 +130,7 @@ public class PermissionHelper {
                                                      ActivityResultLauncher<String[]> activityResultLauncher,
                                                      @NonNull String permission,
                                                      int requestCode) {
+
         return requestPermission(act, activityResultLauncher, new String[]{permission}, requestCode);
     }
 
@@ -171,28 +180,63 @@ public class PermissionHelper {
         return this;
     }
 
+    public PermissionHelper setIPermissionResult(IPermissionResult iPermissionResult) {
+        this.iPermissionResult = iPermissionResult;
+        return this;
+    }
+
     public void execute() {
         if (mActivity != null) {
-            PermissionRequester.request(mActivity, mPermissions, mRequestCode, mRunGranted, mRunShouldRational, mRunDenied, mRunDeniedAlways);
+            PermissionRequester.request(mActivity,
+                    mPermissions,
+                    mRequestCode,
+                    mRunGranted,
+                    mRunShouldRational,
+                    mRunDenied,
+                    mRunDeniedAlways,
+                    iPermissionResult);
 
         } else if (mFragment != null) {
-            PermissionRequester.request(mFragment, mPermissions, mRequestCode, mRunGranted, mRunShouldRational, mRunDenied, mRunDeniedAlways);
+            PermissionRequester.request(mFragment,
+                    mPermissions,
+                    mRequestCode,
+                    mRunGranted,
+                    mRunShouldRational,
+                    mRunDenied,
+                    mRunDeniedAlways,
+                    iPermissionResult);
 
         } else if (mAppcompatActivity != null) {
-            PermissionRequester.request(mAppcompatActivity, mActivityResultLauncher, mPermissions, mRequestCode, mRunGranted, mRunShouldRational, mRunDenied, mRunDeniedAlways);
+            PermissionRequester.request(mAppcompatActivity,
+                    mActivityResultLauncher,
+                    mPermissions,
+                    mRequestCode,
+                    mRunGranted,
+                    mRunShouldRational,
+                    mRunDenied,
+                    mRunDeniedAlways,
+                    iPermissionResult);
 
         } else { //AndroidX Fragment
-            PermissionRequester.request(mAppcompatFragment, mActivityResultLauncher, mPermissions, mRequestCode, mRunGranted, mRunShouldRational, mRunDenied, mRunDeniedAlways);
+            PermissionRequester.request(mAppcompatFragment,
+                    mActivityResultLauncher,
+                    mPermissions,
+                    mRequestCode,
+                    mRunGranted,
+                    mRunShouldRational,
+                    mRunDenied,
+                    mRunDeniedAlways,
+                    iPermissionResult);
 
         }
     }
 
-    public static void callbackPermissionResult(Activity activity, int requestCode, int[] grantResult) {
-        PermissionRequester.executeJob(activity, requestCode, grantResult);
+    public static void callbackPermissionResult(Activity activity, int requestCode, String[] permissions, int[] grantResult) {
+        PermissionRequester.executeJob(activity, requestCode, permissions, grantResult);
     }
 
-    public static void callbackPermissionResult(Fragment fragment, int requestCode, int[] grantResult) {
-        PermissionRequester.executeJob(fragment, requestCode, grantResult);
+    public static void callbackPermissionResult(Fragment fragment, int requestCode, String[] permissions, int[] grantResult) {
+        PermissionRequester.executeJob(fragment, requestCode, permissions, grantResult);
     }
 
     public static void callbackPermissionResult(AppCompatActivity appcompatActivity, int requestCode, Map<String, Boolean> resultMap) {
